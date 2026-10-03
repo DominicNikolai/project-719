@@ -184,7 +184,11 @@
   const lerp = (from: number, to: number, amount: number): number =>
     from + (to - from) * amount;
 
-  const smoothstep = (edgeLow: number, edgeHigh: number, value: number): number => {
+  const smoothstep = (
+    edgeLow: number,
+    edgeHigh: number,
+    value: number
+  ): number => {
     const normalized = clamp((value - edgeLow) / (edgeHigh - edgeLow), 0, 1);
     return normalized * normalized * (3 - 2 * normalized);
   };
@@ -216,7 +220,8 @@
       shuffled[swapIndex] = held;
     }
     const table = new Uint8Array(512);
-    for (let index = 0; index < 512; index++) table[index] = shuffled[index & 255];
+    for (let index = 0; index < 512; index++)
+      table[index] = shuffled[index & 255];
     return table;
   };
 
@@ -243,14 +248,24 @@
     const latticeX = cellX & 255;
     const latticeY = cellY & 255;
     const cornerA = (permutation[latticeX + permutation[latticeY]] & 255) << 1;
-    const cornerB = (permutation[latticeX + 1 + permutation[latticeY]] & 255) << 1;
-    const cornerC = (permutation[latticeX + permutation[latticeY + 1]] & 255) << 1;
-    const cornerD = (permutation[latticeX + 1 + permutation[latticeY + 1]] & 255) << 1;
+    const cornerB =
+      (permutation[latticeX + 1 + permutation[latticeY]] & 255) << 1;
+    const cornerC =
+      (permutation[latticeX + permutation[latticeY + 1]] & 255) << 1;
+    const cornerD =
+      (permutation[latticeX + 1 + permutation[latticeY + 1]] & 255) << 1;
     const dotA = gradients[cornerA] * offsetX + gradients[cornerA + 1] * offsetY;
-    const dotB = gradients[cornerB] * (offsetX - 1) + gradients[cornerB + 1] * offsetY;
-    const dotC = gradients[cornerC] * offsetX + gradients[cornerC + 1] * (offsetY - 1);
-    const dotD = gradients[cornerD] * (offsetX - 1) + gradients[cornerD + 1] * (offsetY - 1);
-    const horizontal = lerp(lerp(dotA, dotB, blendX), lerp(dotC, dotD, blendX), blendY);
+    const dotB =
+      gradients[cornerB] * (offsetX - 1) + gradients[cornerB + 1] * offsetY;
+    const dotC =
+      gradients[cornerC] * offsetX + gradients[cornerC + 1] * (offsetY - 1);
+    const dotD =
+      gradients[cornerD] * (offsetX - 1) + gradients[cornerD + 1] * (offsetY - 1);
+    const horizontal = lerp(
+      lerp(dotA, dotB, blendX),
+      lerp(dotC, dotD, blendX),
+      blendY
+    );
     return horizontal * PERLIN_RANGE;
   };
 
@@ -282,7 +297,9 @@
       output[offset + channel] =
         palette.baseline[channel] +
         palette.amplitude[channel] *
-          Math.cos(TAU * (palette.frequency[channel] * t + palette.phase[channel]));
+          Math.cos(
+            TAU * (palette.frequency[channel] * t + palette.phase[channel])
+          );
     }
   };
 
@@ -309,7 +326,14 @@
     sprite.height = size;
     const spriteContext = sprite.getContext('2d') as CanvasRenderingContext2D;
     const center = size / 2;
-    const halo = spriteContext.createRadialGradient(center, center, 0, center, center, center);
+    const halo = spriteContext.createRadialGradient(
+      center,
+      center,
+      0,
+      center,
+      center,
+      center
+    );
     halo.addColorStop(0, 'rgba(255, 255, 255, 1)');
     halo.addColorStop(0.08, hexToRgba(tint, 0.95));
     halo.addColorStop(0.24, hexToRgba(tint, 0.34));
@@ -342,17 +366,31 @@
     column.addColorStop(1, hexToRgba(tint, 0));
     spriteContext.fillStyle = column;
     spriteContext.fillRect(center - size * 0.005, 0, size * 0.01, size);
-    const core = spriteContext.createRadialGradient(center, center, 0, center, center, size * 0.07);
+    const core = spriteContext.createRadialGradient(
+      center,
+      center,
+      0,
+      center,
+      center,
+      size * 0.07
+    );
     core.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
     core.addColorStop(1, hexToRgba(tint, 0));
     spriteContext.fillStyle = core;
-    spriteContext.fillRect(center - size * 0.08, center - size * 0.08, size * 0.16, size * 0.16);
+    spriteContext.fillRect(
+      center - size * 0.08,
+      center - size * 0.08,
+      size * 0.16,
+      size * 0.16
+    );
     return sprite;
   };
 
   const createNebulaField = (): NebulaField => {
     const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D;
+    const context = canvas.getContext('2d', {
+      alpha: false
+    }) as CanvasRenderingContext2D;
     const sample = new Float32Array(6);
 
     const field: NebulaField = {
@@ -391,7 +429,11 @@
             const baseX = normalizedX * 2.4 * aspect;
 
             const warpX = fbm(baseX * 0.85 + warpDrift, baseY * 0.85, 2);
-            const warpY = fbm(baseX * 0.85 + 5.2 - warpDrift, baseY * 0.85 + 1.3, 2);
+            const warpY = fbm(
+              baseX * 0.85 + 5.2 - warpDrift,
+              baseY * 0.85 + 1.3,
+              2
+            );
             const domainX = baseX + warpX * 0.9;
             const domainY = baseY + warpY * 0.9;
 
@@ -404,32 +446,63 @@
             const lensedY = domainY + distanceY * lensReach * 0.6;
 
             const mass = fbm(lensedX * 1.3 + drift, lensedY * 1.3, 4) * 0.5 + 0.5;
-            const veil = fbm(lensedX * 2.5 - drift * 1.7 + 11.3, lensedY * 2.5 + 4.1, 3) * 0.5 + 0.5;
+            const veil =
+              fbm(lensedX * 2.5 - drift * 1.7 + 11.3, lensedY * 2.5 + 4.1, 3) *
+                0.5 +
+              0.5;
 
             const filament = Math.pow(clamp(mass * 1.24 - 0.2, 0, 1), 1.9);
             const mist = Math.pow(clamp(veil * 1.12 - 0.1, 0, 1), 2.3);
 
             const focalColumnDistance = normalizedX - focalX;
-            const core = 1 - smoothstep(
-              0.01,
-              0.55,
-              focalColumnDistance * focalColumnDistance * 1.15 + focalRowDistance * focalRowDistance
-            );
+            const core =
+              1 -
+              smoothstep(
+                0.01,
+                0.55,
+                focalColumnDistance * focalColumnDistance * 1.15 +
+                  focalRowDistance * focalRowDistance
+              );
             const luminance = filament * (0.5 + core * 0.95) + mist * 0.4;
 
-            samplePalette(NEBULA_PALETTE, filament * 0.8 + 0.06 + hueDrift, sample, 0);
-            samplePalette(ACCENT_PALETTE, mist * 0.72 + 0.14 - hueDrift * 0.6, sample, 3);
+            samplePalette(
+              NEBULA_PALETTE,
+              filament * 0.8 + 0.06 + hueDrift,
+              sample,
+              0
+            );
+            samplePalette(
+              ACCENT_PALETTE,
+              mist * 0.72 + 0.14 - hueDrift * 0.6,
+              sample,
+              3
+            );
 
             const blend = clamp(mist * 1.4, 0, 1);
             const brightness = clamp(luminance, 0, 1.5) * (1 + lensReach * 1.5);
             const index = (row * width + column) * 4;
 
             pixels[index] =
-              255 * clamp(BASE_RED + lerp(sample[0], sample[3], blend) * brightness, 0, 1);
+              255 *
+              clamp(
+                BASE_RED + lerp(sample[0], sample[3], blend) * brightness,
+                0,
+                1
+              );
             pixels[index + 1] =
-              255 * clamp(BASE_GREEN + lerp(sample[1], sample[4], blend) * brightness, 0, 1);
+              255 *
+              clamp(
+                BASE_GREEN + lerp(sample[1], sample[4], blend) * brightness,
+                0,
+                1
+              );
             pixels[index + 2] =
-              255 * clamp(BASE_BLUE + lerp(sample[2], sample[5], blend) * brightness, 0, 1);
+              255 *
+              clamp(
+                BASE_BLUE + lerp(sample[2], sample[5], blend) * brightness,
+                0,
+                1
+              );
             pixels[index + 3] = 255;
           }
         }
@@ -465,12 +538,78 @@
   };
 
   const RIBBONS: Ribbon[] = [
-    { baseline: 0.24, amplitude: 0.13, thickness: 0.055, sway: 0.07, frequency: 2.2, drift: 0.05, opacity: 0.95, tint: 0.08, phase: 0.4, palette: ACCENT_PALETTE },
-    { baseline: 0.38, amplitude: 0.1, thickness: 0.038, sway: 0.05, frequency: 3.1, drift: -0.038, opacity: 0.75, tint: 0.32, phase: 2.1, palette: ACCENT_PALETTE },
-    { baseline: 0.63, amplitude: 0.16, thickness: 0.062, sway: 0.09, frequency: 1.7, drift: 0.027, opacity: 0.85, tint: 0.72, phase: 4.3, palette: EMBER_PALETTE },
-    { baseline: 0.79, amplitude: 0.11, thickness: 0.032, sway: 0.06, frequency: 2.7, drift: -0.045, opacity: 0.6, tint: 0.86, phase: 5.9, palette: NEBULA_PALETTE },
-    { baseline: 0.5, amplitude: 0.2, thickness: 0.022, sway: 0.11, frequency: 1.2, drift: 0.018, opacity: 0.45, tint: 0.22, phase: 1.2, palette: EMBER_PALETTE },
-    { baseline: 0.86, amplitude: 0.08, thickness: 0.028, sway: 0.04, frequency: 3.6, drift: 0.033, opacity: 0.5, tint: 0.02, phase: 3.2, palette: EMBER_PALETTE }
+    {
+      baseline: 0.24,
+      amplitude: 0.13,
+      thickness: 0.055,
+      sway: 0.07,
+      frequency: 2.2,
+      drift: 0.05,
+      opacity: 0.95,
+      tint: 0.08,
+      phase: 0.4,
+      palette: ACCENT_PALETTE
+    },
+    {
+      baseline: 0.38,
+      amplitude: 0.1,
+      thickness: 0.038,
+      sway: 0.05,
+      frequency: 3.1,
+      drift: -0.038,
+      opacity: 0.75,
+      tint: 0.32,
+      phase: 2.1,
+      palette: ACCENT_PALETTE
+    },
+    {
+      baseline: 0.63,
+      amplitude: 0.16,
+      thickness: 0.062,
+      sway: 0.09,
+      frequency: 1.7,
+      drift: 0.027,
+      opacity: 0.85,
+      tint: 0.72,
+      phase: 4.3,
+      palette: EMBER_PALETTE
+    },
+    {
+      baseline: 0.79,
+      amplitude: 0.11,
+      thickness: 0.032,
+      sway: 0.06,
+      frequency: 2.7,
+      drift: -0.045,
+      opacity: 0.6,
+      tint: 0.86,
+      phase: 5.9,
+      palette: NEBULA_PALETTE
+    },
+    {
+      baseline: 0.5,
+      amplitude: 0.2,
+      thickness: 0.022,
+      sway: 0.11,
+      frequency: 1.2,
+      drift: 0.018,
+      opacity: 0.45,
+      tint: 0.22,
+      phase: 1.2,
+      palette: EMBER_PALETTE
+    },
+    {
+      baseline: 0.86,
+      amplitude: 0.08,
+      thickness: 0.028,
+      sway: 0.04,
+      frequency: 3.6,
+      drift: 0.033,
+      opacity: 0.5,
+      tint: 0.02,
+      phase: 3.2,
+      palette: EMBER_PALETTE
+    }
   ];
 
   const FLOW_BUCKETS: FlowBucket[] = [
@@ -481,7 +620,11 @@
     { color: '236, 242, 255', alpha: 0.6, width: 0.7 }
   ];
 
-  const drawAtmosphere = (layer: OffscreenLayer, time: number, pointer: PointerState): void => {
+  const drawAtmosphere = (
+    layer: OffscreenLayer,
+    time: number,
+    pointer: PointerState
+  ): void => {
     const { context, width, height } = layer;
     context.globalCompositeOperation = 'lighter';
     context.clearRect(0, 0, width, height);
@@ -499,8 +642,14 @@
       const spread = 0.011;
       context.beginPath();
       context.moveTo(originX, originY);
-      context.lineTo(originX + Math.cos(angle - spread) * reach, originY + Math.sin(angle - spread) * reach);
-      context.lineTo(originX + Math.cos(angle + spread) * reach, originY + Math.sin(angle + spread) * reach);
+      context.lineTo(
+        originX + Math.cos(angle - spread) * reach,
+        originY + Math.sin(angle - spread) * reach
+      );
+      context.lineTo(
+        originX + Math.cos(angle + spread) * reach,
+        originY + Math.sin(angle + spread) * reach
+      );
       context.closePath();
       context.fillStyle = `rgba(148, 188, 255, ${intensity})`;
       context.fill();
@@ -512,11 +661,18 @@
       context.beginPath();
       for (let segment = 0; segment <= segments; segment++) {
         const t = segment / segments;
-        const turbulence = fbm(t * 2.6 + ribbon.phase + time * ribbon.drift, ribbon.phase * 0.6, 3);
-        const sway = Math.sin(t * Math.PI * ribbon.frequency + time * ribbon.drift * 4 + ribbon.phase);
+        const turbulence = fbm(
+          t * 2.6 + ribbon.phase + time * ribbon.drift,
+          ribbon.phase * 0.6,
+          3
+        );
+        const sway = Math.sin(
+          t * Math.PI * ribbon.frequency + time * ribbon.drift * 4 + ribbon.phase
+        );
         const x = t * width;
         const y =
-          ribbon.baseline * height + (turbulence * ribbon.amplitude + sway * ribbon.sway) * height;
+          ribbon.baseline * height +
+          (turbulence * ribbon.amplitude + sway * ribbon.sway) * height;
         if (segment === 0) context.moveTo(x, y);
         else context.lineTo(x, y);
       }
@@ -538,7 +694,10 @@
       Math.max(width, height) * 0.62
     );
     haze.addColorStop(0, `rgba(${paletteChannels(ACCENT_PALETTE, 0.2)}, 0.15)`);
-    haze.addColorStop(0.42, `rgba(${paletteChannels(NEBULA_PALETTE, 0.42)}, 0.07)`);
+    haze.addColorStop(
+      0.42,
+      `rgba(${paletteChannels(NEBULA_PALETTE, 0.42)}, 0.07)`
+    );
     haze.addColorStop(1, 'rgba(0, 0, 0, 0)');
     context.fillStyle = haze;
     context.fillRect(0, 0, width, height);
@@ -561,10 +720,16 @@
   const glowSceneContext = glowScene.context;
   const glowBlurContext = glowBlur.context;
 
-  const glowSprites = STAR_TINTS.map((tint) => createGlowSprite(tint, 64));
-  const flareSprites = STAR_TINTS.map((tint) => createFlareSprite(tint, 96));
+  const glowSprites = STAR_TINTS.map(tint => createGlowSprite(tint, 64));
+  const flareSprites = STAR_TINTS.map(tint => createFlareSprite(tint, 96));
 
-  const pointer: PointerState = { x: 0.5, y: 0.48, glow: 0, influence: 0, inside: false };
+  const pointer: PointerState = {
+    x: 0.5,
+    y: 0.48,
+    glow: 0,
+    influence: 0,
+    inside: false
+  };
   const pointerTarget: PointerState = { ...pointer };
   const ripples: Ripple[] = [];
   const flowBuckets = FLOW_BUCKETS.map((bucket, index) => ({ ...bucket, index }));
@@ -607,10 +772,17 @@
   };
 
   const buildStars = (): void => {
-    const count = clamp(Math.round((viewportWidth * viewportHeight) / 5200), 120, 620);
+    const count = clamp(
+      Math.round((viewportWidth * viewportHeight) / 5200),
+      120,
+      620
+    );
     stars = Array.from({ length: count }, () => {
       const depth = Math.pow(random(), 1.6);
-      const tint = Math.min(STAR_TINTS.length - 1, Math.floor(Math.pow(random(), 1.4) * STAR_TINTS.length));
+      const tint = Math.min(
+        STAR_TINTS.length - 1,
+        Math.floor(Math.pow(random(), 1.4) * STAR_TINTS.length)
+      );
       return {
         x: random(),
         y: random(),
@@ -627,14 +799,21 @@
   };
 
   const buildParticles = (): void => {
-    const count = clamp(Math.round((viewportWidth * viewportHeight) / 9000), 90, 340);
+    const count = clamp(
+      Math.round((viewportWidth * viewportHeight) / 9000),
+      90,
+      340
+    );
     particles = Array.from({ length: count }, () => ({
       x: random() * viewportWidth,
       y: random() * viewportHeight,
       age: 0,
       lifespan: randomBetween(70, 280),
       speed: lerp(0.3, 1.4, random()),
-      bucket: Math.min(flowBuckets.length - 1, Math.floor(random() * flowBuckets.length))
+      bucket: Math.min(
+        flowBuckets.length - 1,
+        Math.floor(random() * flowBuckets.length)
+      )
     }));
   };
 
@@ -666,18 +845,36 @@
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
 
-    const budgetDivisor = Math.sqrt((viewportWidth * viewportHeight) / NEBULA_PIXEL_BUDGET);
+    const budgetDivisor = Math.sqrt(
+      (viewportWidth * viewportHeight) / NEBULA_PIXEL_BUDGET
+    );
     nebulaDivisor = clamp(nebulaDivisor, budgetDivisor, NEBULA_MAX_DIVISOR);
     nebula.resize(viewportWidth / nebulaDivisor, viewportHeight / nebulaDivisor);
-    atmosphere.resize(viewportWidth / ATMOSPHERE_DIVISOR, viewportHeight / ATMOSPHERE_DIVISOR);
+    atmosphere.resize(
+      viewportWidth / ATMOSPHERE_DIVISOR,
+      viewportHeight / ATMOSPHERE_DIVISOR
+    );
     flow.resize(viewportWidth / FLOW_DIVISOR, viewportHeight / FLOW_DIVISOR);
-    glowScene.resize(viewportWidth / GLOW_SCENE_DIVISOR, viewportHeight / GLOW_SCENE_DIVISOR);
-    glowBlur.resize(viewportWidth / GLOW_BLUR_DIVISOR, viewportHeight / GLOW_BLUR_DIVISOR);
+    glowScene.resize(
+      viewportWidth / GLOW_SCENE_DIVISOR,
+      viewportHeight / GLOW_SCENE_DIVISOR
+    );
+    glowBlur.resize(
+      viewportWidth / GLOW_BLUR_DIVISOR,
+      viewportHeight / GLOW_BLUR_DIVISOR
+    );
 
     const centerX = viewportWidth * 0.5;
     const centerY = viewportHeight * 0.5;
     const radius = Math.hypot(centerX, centerY);
-    vignette = context.createRadialGradient(centerX, centerY, radius * 0.22, centerX, centerY, radius);
+    vignette = context.createRadialGradient(
+      centerX,
+      centerY,
+      radius * 0.22,
+      centerX,
+      centerY,
+      radius
+    );
     vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
     vignette.addColorStop(0.55, 'rgba(3, 4, 14, 0.14)');
     vignette.addColorStop(0.82, 'rgba(2, 3, 10, 0.5)');
@@ -691,7 +888,10 @@
   const updatePointer = (clientX: number, clientY: number): void => {
     const normalizedX = clamp(clientX / viewportWidth, 0, 1);
     const normalizedY = clamp(clientY / viewportHeight, 0, 1);
-    const movement = Math.hypot(normalizedX - pointerTarget.x, normalizedY - pointerTarget.y);
+    const movement = Math.hypot(
+      normalizedX - pointerTarget.x,
+      normalizedY - pointerTarget.y
+    );
     pointerTarget.x = normalizedX;
     pointerTarget.y = normalizedY;
     pointerTarget.glow = clamp(pointerTarget.glow + movement * 11, 0, 1);
@@ -709,7 +909,11 @@
     );
   };
 
-  const drawStars = (target: CanvasRenderingContext2D, time: number, emissive: boolean): void => {
+  const drawStars = (
+    target: CanvasRenderingContext2D,
+    time: number,
+    emissive: boolean
+  ): void => {
     const offsetX = (pointer.x - 0.5) * 46;
     const offsetY = (pointer.y - 0.5) * 46;
     target.globalCompositeOperation = 'lighter';
@@ -724,11 +928,23 @@
       const x = star.x * viewportWidth - offsetX * parallax;
       const y = star.y * viewportHeight - offsetY * parallax;
       target.globalAlpha = alpha;
-      target.drawImage(star.sprite, x - diameter / 2, y - diameter / 2, diameter, diameter);
+      target.drawImage(
+        star.sprite,
+        x - diameter / 2,
+        y - diameter / 2,
+        diameter,
+        diameter
+      );
       if (star.flare <= 0) continue;
       const flareDiameter = diameter * (5 + twinkle * 2.6);
       target.globalAlpha = alpha * star.flare * 0.5;
-      target.drawImage(star.flareSprite, x - flareDiameter / 2, y - flareDiameter / 2, flareDiameter, flareDiameter);
+      target.drawImage(
+        star.flareSprite,
+        x - flareDiameter / 2,
+        y - flareDiameter / 2,
+        flareDiameter,
+        flareDiameter
+      );
     }
 
     target.globalAlpha = 1;
@@ -742,9 +958,16 @@
       const previousX = meteor.x;
       const previousY = meteor.y;
       const speed = Math.hypot(meteor.velocityX, meteor.velocityY) || 1;
-      const tailX = previousX - (meteor.velocityX / speed) * meteor.length * meteor.life;
-      const tailY = previousY - (meteor.velocityY / speed) * meteor.length * meteor.life;
-      const streak = target.createLinearGradient(tailX, tailY, previousX, previousY);
+      const tailX =
+        previousX - (meteor.velocityX / speed) * meteor.length * meteor.life;
+      const tailY =
+        previousY - (meteor.velocityY / speed) * meteor.length * meteor.life;
+      const streak = target.createLinearGradient(
+        tailX,
+        tailY,
+        previousX,
+        previousY
+      );
       streak.addColorStop(0, `rgba(${meteor.color}, 0)`);
       streak.addColorStop(0.7, `rgba(${meteor.color}, ${0.32 * meteor.life})`);
       streak.addColorStop(1, `rgba(255, 255, 255, ${0.85 * meteor.life})`);
@@ -876,10 +1099,18 @@
     core.addColorStop(0, `rgba(255, 255, 255, ${0.08 + pointer.glow * 0.22})`);
     core.addColorStop(1, 'rgba(0, 0, 0, 0)');
     target.fillStyle = core;
-    target.fillRect(x - coreRadius, y - coreRadius, coreRadius * 2, coreRadius * 2);
+    target.fillRect(
+      x - coreRadius,
+      y - coreRadius,
+      coreRadius * 2,
+      coreRadius * 2
+    );
   };
 
-  const drawRipples = (target: CanvasRenderingContext2D, frameScale: number): void => {
+  const drawRipples = (
+    target: CanvasRenderingContext2D,
+    frameScale: number
+  ): void => {
     target.globalCompositeOperation = 'lighter';
     const channels = paletteChannels(ACCENT_PALETTE, 0.45);
     for (const ripple of ripples) {
@@ -907,7 +1138,12 @@
       wash.addColorStop(0.72, `rgba(${channels}, ${eased * 0.08})`);
       wash.addColorStop(1, 'rgba(0, 0, 0, 0)');
       target.fillStyle = wash;
-      target.fillRect(ripple.x - washRadius, ripple.y - washRadius, washRadius * 2, washRadius * 2);
+      target.fillRect(
+        ripple.x - washRadius,
+        ripple.y - washRadius,
+        washRadius * 2,
+        washRadius * 2
+      );
     }
 
     for (let index = ripples.length - 1; index >= 0; index--) {
@@ -924,7 +1160,13 @@
     glowSceneContext.globalCompositeOperation = 'lighter';
 
     glowSceneContext.globalAlpha = 0.5;
-    glowSceneContext.drawImage(atmosphere.canvas, 0, 0, viewportWidth, viewportHeight);
+    glowSceneContext.drawImage(
+      atmosphere.canvas,
+      0,
+      0,
+      viewportWidth,
+      viewportHeight
+    );
     glowSceneContext.globalAlpha = 0.3;
     glowSceneContext.drawImage(flow.canvas, 0, 0, viewportWidth, viewportHeight);
     glowSceneContext.globalAlpha = 1;
@@ -937,10 +1179,22 @@
     glowBlurContext.globalCompositeOperation = 'copy';
     glowBlurContext.imageSmoothingEnabled = true;
     glowBlurContext.imageSmoothingQuality = 'low';
-    glowBlurContext.drawImage(glowScene.canvas, 0, 0, glowBlur.width, glowBlur.height);
+    glowBlurContext.drawImage(
+      glowScene.canvas,
+      0,
+      0,
+      glowBlur.width,
+      glowBlur.height
+    );
     glowBlurContext.globalCompositeOperation = 'lighter';
     glowBlurContext.globalAlpha = GLOW_TIGHT_STRENGTH;
-    glowBlurContext.drawImage(glowScene.canvas, 0, 0, glowBlur.width, glowBlur.height);
+    glowBlurContext.drawImage(
+      glowScene.canvas,
+      0,
+      0,
+      glowBlur.width,
+      glowBlur.height
+    );
     glowBlurContext.globalAlpha = 1;
 
     context.globalCompositeOperation = 'lighter';
@@ -964,7 +1218,12 @@
         -Math.floor(random() * GRAIN_TILE_SIZE)
       );
       context.fillStyle = grainPattern;
-      context.fillRect(0, 0, viewportWidth + GRAIN_TILE_SIZE, viewportHeight + GRAIN_TILE_SIZE);
+      context.fillRect(
+        0,
+        0,
+        viewportWidth + GRAIN_TILE_SIZE,
+        viewportHeight + GRAIN_TILE_SIZE
+      );
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     }
 
@@ -1001,10 +1260,14 @@
     if (qualityFrames < 100) return;
     qualityFrames = 0;
 
-    const budgetDivisor = Math.sqrt((viewportWidth * viewportHeight) / NEBULA_PIXEL_BUDGET);
+    const budgetDivisor = Math.sqrt(
+      (viewportWidth * viewportHeight) / NEBULA_PIXEL_BUDGET
+    );
     const previous = nebulaDivisor;
-    if (smoothedFrameTime > 0.0225) nebulaDivisor = Math.min(NEBULA_MAX_DIVISOR, nebulaDivisor * 1.15);
-    else if (smoothedFrameTime < 0.0135) nebulaDivisor = Math.max(NEBULA_MIN_DIVISOR, nebulaDivisor / 1.08);
+    if (smoothedFrameTime > 0.0225)
+      nebulaDivisor = Math.min(NEBULA_MAX_DIVISOR, nebulaDivisor * 1.15);
+    else if (smoothedFrameTime < 0.0135)
+      nebulaDivisor = Math.max(NEBULA_MIN_DIVISOR, nebulaDivisor / 1.08);
 
     const resolved = clamp(nebulaDivisor, budgetDivisor, NEBULA_MAX_DIVISOR);
     if (resolved === previous) return;
@@ -1092,12 +1355,14 @@
   window.addEventListener('resize', handleResize, { passive: true });
   window.addEventListener('pointermove', handlePointerMove, { passive: true });
   window.addEventListener('pointerdown', handlePointerDown, { passive: true });
-  document.addEventListener('pointerleave', handlePointerLeave, { passive: true });
+  document.addEventListener('pointerleave', handlePointerLeave, {
+    passive: true
+  });
   document.addEventListener('visibilitychange', handleVisibility);
 
   new IntersectionObserver(
-    (entries) => {
-      if (entries.some((entry) => !entry.isIntersecting)) pause();
+    entries => {
+      if (entries.some(entry => !entry.isIntersecting)) pause();
       else start();
     },
     { threshold: 0 }
